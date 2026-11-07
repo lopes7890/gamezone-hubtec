@@ -1,0 +1,13 @@
+<% if (bracket.champion) { %>
+  <div class="champion">
+    <span class="trophy">🏆</span>
+    <div><small>Campeão</small><b><%= bracket.champion.name %></b><span><%= bracket.champion.sub %></span></div>
+  </div>
+<% } %>
+<% if (!bracket.rounds.length) { %>
+  <p class="empty">O sorteio dos confrontos ainda não foi realizado.</p>
+<% } %>
+<% [...bracket.rounds].reverse().forEach(r => { %>
+  <h3 class="round-title"><%= r.label %></h3>
+  <%- include('matches', { matches: r.matches }) %>
+<% }) %>

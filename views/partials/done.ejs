@@ -1,0 +1,6 @@
+<div class="stats" style="margin-bottom:1.2rem">
+  <div class="stat"><b><%= bracket.played %></b><small>partidas realizadas</small></div>
+  <div class="stat"><b><%= bracket.pending %></b><small>partidas pendentes</small></div>
+</div>
+<% if (bracket.doneList.length) { %><%- include('matches', { matches: bracket.doneList }) %>
+<% } else { %><p class="empty">Nenhuma partida realizada ainda.</p><% } %>

@@ -1,0 +1,18 @@
+<%- include('partials/head', { title: 'Início' }) %>
+<%- include('partials/header', { active: '/' }) %>
+<main>
+  <section class="hero single">
+    <div>
+      <h1>Escolha seu <span>jogo</span></h1>
+      <p>Selecione a modalidade, faça sua inscrição e acompanhe os participantes.</p>
+    </div>
+  </section>
+  <section class="games">
+    <% Object.values(games).forEach(g => { %>
+      <%- include('partials/game-button', { g, count: counts[g.slug] }) %>
+    <% }) %>
+  </section>
+</main>
+<%- include('partials/footer') %>
+</body>
+</html>

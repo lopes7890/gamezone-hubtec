@@ -1,0 +1,8 @@
+<article class="card" data-search="<%= (team.name + ' ' + team.members.map(m => m.name).join(' ')).toLowerCase() %>">
+  <h3><%= team.name %></h3>
+  <ul class="players">
+    <% team.members.forEach(m => { %>
+      <li><%= m.name %><span class="tag"><%= m.semester %>º sem.</span></li>
+    <% }) %>
+  </ul>
+</article>

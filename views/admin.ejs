@@ -1,0 +1,87 @@
+<% const all = Object.values(games); %>
+<%- include('partials/head', { title: 'Admin' }) %>
+<%- include('partials/header', { active }) %>
+<main>
+  <section class="panel narrow" id="login">
+    <h2 style="margin-bottom:1rem">Acesso do administrador</h2>
+    <form id="fLogin">
+      <div class="field"><label for="pw">Senha</label><input id="pw" type="password" required></div>
+      <button class="btn">Entrar</button>
+    </form>
+  </section>
+
+  <section id="panel" hidden>
+    <div class="bar"><h2>Painel do administrador</h2><button class="btn ghost sm" id="logout">Sair</button></div>
+    <div class="tabs" id="atabs">
+      <% all.forEach(g => { %><button class="tab" data-t="<%= g.slug %>"><%= g.name %> <span class="badge" id="c-<%= g.slug %>">0</span></button><% }) %>
+    </div>
+
+    <% all.forEach(g => { %>
+      <section data-pane="<%= g.slug %>" hidden>
+        <div class="panel" style="overflow-x:auto;margin-bottom:1.4rem">
+          <% if (g.type === 'team') { %>
+            <h3 style="margin-bottom:.6rem">Equipes inscritas</h3>
+            <table>
+              <thead><tr><th>Equipe</th><th>Integrantes</th><th>PIN</th><th></th></tr></thead>
+              <tbody id="rows-<%= g.slug %>"></tbody>
+            </table>
+          <% } else { %>
+            <h3 style="margin-bottom:.6rem">Jogadores inscritos</h3>
+            <table>
+              <thead><tr><th>#</th><th>Nome</th><th>Idade</th><th></th></tr></thead>
+              <tbody id="rows-<%= g.slug %>"></tbody>
+            </table>
+          <% } %>
+        </div>
+
+        <div class="panel" style="margin-bottom:1.4rem">
+          <div class="bar">
+            <h3>Chaveamento e sorteio</h3>
+            <div class="actions">
+              <button class="btn sm" data-draw="<%= g.slug %>">Sortear 1ª rodada</button>
+              <button class="btn ghost sm" data-redraw="<%= g.slug %>">Refazer rodada atual</button>
+              <button class="btn danger sm" data-reset="<%= g.slug %>">Reiniciar</button>
+            </div>
+          </div>
+          <p class="hint" id="status-<%= g.slug %>"></p>
+          <div id="draw-<%= g.slug %>"></div>
+        </div>
+
+        <div class="panel">
+          <div class="bar">
+            <h3>Partidas realizadas</h3>
+            <div class="stats">
+              <div class="stat"><b id="done-count-<%= g.slug %>">0</b><small>realizadas</small></div>
+              <div class="stat"><b id="pend-count-<%= g.slug %>">0</b><small>pendentes</small></div>
+            </div>
+          </div>
+          <div id="done-<%= g.slug %>"></div>
+        </div>
+      </section>
+    <% }) %>
+  </section>
+
+  <dialog id="dlgTeam">
+    <form id="fTeam">
+      <h3 style="margin-bottom:1rem">Editar equipe</h3>
+      <div class="field"><label for="eName">Nome da equipe</label><input id="eName" maxlength="40" required></div>
+      <div class="field"><label for="ePin">Novo PIN (deixe vazio para manter)</label><input id="ePin" maxlength="20"></div>
+      <div id="eMembers"></div>
+      <div class="row"><button class="btn">Salvar</button><button type="button" class="btn ghost" data-close>Cancelar</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="dlgPlayer">
+    <form id="fPlayer">
+      <h3 style="margin-bottom:1rem">Editar jogador</h3>
+      <div class="field"><label for="pName">Nome</label><input id="pName" maxlength="60" required></div>
+      <div class="field"><label for="pAge">Idade</label><input id="pAge" type="number" min="5" max="99" required></div>
+      <div class="row"><button class="btn">Salvar</button><button type="button" class="btn ghost" data-close>Cancelar</button></div>
+    </form>
+  </dialog>
+</main>
+<%- include('partials/footer') %>
+<script>window.ADMIN = <%- JSON.stringify({ games: all.map(g => ({ slug: g.slug, type: g.type })) }) %>;</script>
+<script src="/js/admin.js"></script>
+</body>
+</html>

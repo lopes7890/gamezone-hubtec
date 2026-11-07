@@ -1,0 +1,21 @@
+<%- include('partials/head', { title: game.name }) %>
+<%- include('partials/header', { active }) %>
+<main>
+  <section class="games mini-strip">
+    <% Object.values(games).forEach(g => { %>
+      <%- include('partials/game-button', { g, mini: true, current: g.slug === game.slug }) %>
+    <% }) %>
+  </section>
+
+  <div class="game-title">
+    <h1><%= game.name %></h1><p><%= game.tagline %></p>
+  </div>
+
+  <% if (game.type === 'team') { %><%- include('partials/game-team') %>
+  <% } else { %><%- include('partials/game-solo') %><% } %>
+</main>
+<%- include('partials/footer') %>
+<script>window.GAME = <%- JSON.stringify({ slug: game.slug, type: game.type }) %>;</script>
+<script src="/js/game.js"></script>
+</body>
+</html>

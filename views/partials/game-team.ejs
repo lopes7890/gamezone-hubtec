@@ -1,0 +1,61 @@
+<% const full = teams.length >= game.maxTeams; %>
+<div class="tabs">
+  <button class="tab" data-t="equipes">Equipes (<%= teams.length %>/<%= game.maxTeams %>)</button>
+  <button class="tab on" data-t="inscrever">Inscrição</button>
+  <button class="tab" data-t="gerenciar">Gerenciar integrantes</button>
+  <button class="tab" data-t="confrontos">Confrontos (<%= bracket.pending %>)</button>
+  <button class="tab" data-t="realizados">Realizados (<%= bracket.played %>)</button>
+</div>
+
+<section data-pane="equipes" hidden>
+  <input id="q" class="search" type="search" placeholder="Buscar equipe ou jogador" aria-label="Buscar">
+  <div id="list" class="grid">
+    <% teams.forEach(team => { %><%- include('team-card', { team }) %><% }) %>
+  </div>
+  <p id="none" class="empty" <%= teams.length ? 'hidden' : '' %>>Nenhuma equipe encontrada.</p>
+</section>
+
+<div data-pane="inscrever">
+  <% if (full) { %>
+    <section class="panel narrow limit">
+      <h2>Limite de inscrições atingido</h2>
+      <p>As <%= game.maxTeams %> vagas para equipes de CS 1.6 já foram preenchidas. Novas inscrições não estão sendo aceitas.</p>
+    </section>
+  <% } else { %>
+    <section class="panel narrow">
+      <h2 style="margin-bottom:.4rem">Nova equipe</h2>
+      <p class="hint" style="margin-top:0">Vagas restantes: <b style="color:var(--accent)"><%= game.maxTeams - teams.length %></b> de <%= game.maxTeams %></p>
+      <form id="fNew">
+        <div class="field"><label for="name">Nome da equipe</label><input id="name" maxlength="40" required></div>
+        <div class="field"><label for="pin">PIN da equipe</label><input id="pin" type="password" minlength="4" maxlength="20" required>
+          <span class="hint">Guarde este PIN. Ele será pedido para alterar os integrantes depois.</span></div>
+        <label style="color:var(--muted);font-weight:600">Integrantes (5) e semestre</label>
+        <div id="mNew" style="margin-top:.5rem"></div>
+        <div class="row"><button class="btn">Inscrever equipe</button></div>
+      </form>
+    </section>
+  <% } %>
+  <%- include('rules') %>
+</div>
+
+<section class="panel narrow" data-pane="gerenciar" hidden>
+  <h2 style="margin-bottom:1rem">Minha equipe</h2>
+  <form id="fAuth">
+    <div class="field"><label for="team">Equipe</label>
+      <select id="team" required>
+        <% if (teams.length) { teams.forEach(t => { %><option value="<%= t.id %>"><%= t.name %></option><% }) } else { %><option value="">Nenhuma equipe inscrita</option><% } %>
+      </select>
+    </div>
+    <div class="field"><label for="pinAuth">PIN</label><input id="pinAuth" type="password" required></div>
+    <button class="btn">Entrar</button>
+  </form>
+  <form id="fEdit" hidden>
+    <h3 id="eName" style="margin-bottom:1rem"></h3>
+    <div id="mEdit"></div>
+    <div class="row"><button class="btn">Salvar integrantes</button><button type="button" class="btn ghost" id="out">Sair</button></div>
+  </form>
+</section>
+
+<section class="narrow" data-pane="confrontos" hidden><%- include('rounds') %></section>
+
+<section class="narrow" data-pane="realizados" hidden><%- include('done') %></section>

@@ -1,0 +1,11 @@
+<section class="rules">
+  <h2><%= rules.title %></h2>
+  <div class="rules-grid">
+    <% rules.sections.forEach(s => { %>
+      <article class="rule">
+        <h3><%= s.title %></h3>
+        <ul><% s.items.forEach(i => { %><li><%= i %></li><% }) %></ul>
+      </article>
+    <% }) %>
+  </div>
+</section>

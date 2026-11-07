@@ -1,0 +1,13 @@
+<header class="nav">
+  <a class="brand" href="/">
+    <svg viewBox="0 0 32 32" fill="none" stroke="#0cb9a1" stroke-width="2.4"><circle cx="16" cy="16" r="9"/><path d="M16 2v8M16 22v8M2 16h8M22 16h8"/></svg>
+    Copa Gamer
+  </a>
+  <nav>
+    <a href="/" class="<%= active === '/' ? 'on' : '' %>">Início</a>
+    <% Object.values(games).forEach(g => { %>
+      <a href="/jogos/<%= g.slug %>" class="<%= active === '/jogos/' + g.slug ? 'on' : '' %>"><%= g.name %></a>
+    <% }) %>
+    <a href="/admin" class="<%= active === '/admin' ? 'on' : '' %>">Admin</a>
+  </nav>
+</header>

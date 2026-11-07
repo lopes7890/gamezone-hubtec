@@ -1,0 +1,190 @@
+:root{
+  --bg:#212121; --bg-deep:#181818; --panel:#2a2a2a; --panel-2:#323232;
+  --accent:#0cb9a1; --accent-dim:#0a8c79; --text:#ecf5f3; --muted:#9aa8a5;
+  --danger:#ff5468; --line:rgba(12,185,161,.28);
+  --cut:14px;
+}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Barlow',system-ui,sans-serif; font-size:17px; color:var(--text);
+  background:
+    linear-gradient(rgba(12,185,161,.045) 1px,transparent 1px) 0 0/44px 44px,
+    linear-gradient(90deg,rgba(12,185,161,.045) 1px,transparent 1px) 0 0/44px 44px,
+    var(--bg);
+  min-height:100vh;
+}
+h1,h2,h3,.brand{font-family:'Chakra Petch',sans-serif;letter-spacing:.02em}
+a{color:var(--accent);text-decoration:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+/* topo */
+.nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;
+  padding:.9rem 1.5rem;background:var(--bg-deep);border-bottom:2px solid var(--accent)}
+.brand{display:flex;align-items:center;gap:.6rem;font-weight:700;font-size:1.25rem;color:var(--text)}
+.brand svg{width:30px;height:30px}
+.nav nav{display:flex;gap:.3rem;flex-wrap:wrap}
+.nav nav a{color:var(--muted);padding:.45rem .9rem;font-weight:600;
+  clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
+.nav nav a:hover{color:var(--text)}
+.nav nav a.on{background:var(--accent);color:#102420}
+
+main{max-width:1100px;margin:0 auto;padding:2rem 1.25rem 4rem}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1fr auto;gap:2rem;align-items:center;margin-bottom:2.2rem}
+.hero h1{font-size:clamp(2.2rem,6vw,3.8rem);line-height:1;font-weight:700}
+.hero h1 span{color:var(--accent);text-shadow:0 0 22px rgba(12,185,161,.55)}
+.hero p{color:var(--muted);margin-top:.8rem;max-width:46ch}
+.stats{display:flex;gap:.8rem}
+.stat{background:var(--panel);border-left:4px solid var(--accent);padding:.7rem 1.1rem;min-width:105px;
+  clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%)}
+.stat b{display:block;font-family:'Chakra Petch';font-size:2rem;color:var(--accent);line-height:1}
+.stat small{color:var(--muted)}
+
+/* botões */
+.btn{display:inline-block;font-family:'Chakra Petch';font-weight:700;font-size:1rem;cursor:pointer;border:0;
+  background:var(--accent);color:#102420;padding:.7rem 1.4rem;
+  clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);transition:filter .15s,transform .1s}
+.btn:hover{filter:brightness(1.12)} .btn:active{transform:translateY(1px)}
+.btn.ghost{background:var(--panel-2);color:var(--text)}
+.btn.danger{background:var(--danger);color:#2a0b10}
+.btn.sm{padding:.4rem .9rem;font-size:.9rem}
+
+/* formulários */
+.field{display:flex;flex-direction:column;gap:.35rem;margin-bottom:1rem}
+.field label{font-weight:600;color:var(--muted);font-size:.95rem}
+input,select{font:inherit;color:var(--text);background:var(--bg-deep);border:1px solid #444;border-bottom:2px solid var(--accent-dim);
+  padding:.65rem .8rem;width:100%}
+input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(12,185,161,.2)}
+.search{max-width:340px;margin-bottom:1.4rem}
+
+/* painéis e cards */
+.panel{background:var(--panel);padding:1.5rem;border-top:3px solid var(--accent);
+  clip-path:polygon(0 0,100% 0,100% calc(100% - var(--cut)),calc(100% - var(--cut)) 100%,0 100%)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:1.2rem}
+.card{background:var(--panel);padding:1.2rem 1.3rem 1.3rem;border-top:3px solid var(--accent);
+  clip-path:polygon(0 0,100% 0,100% calc(100% - var(--cut)),calc(100% - var(--cut)) 100%,0 100%);
+  transition:transform .15s,background .15s}
+.card:hover{transform:translateY(-3px);background:var(--panel-2)}
+.card h3{font-size:1.3rem;margin-bottom:.8rem}
+.players{list-style:none;padding:0;display:grid;gap:.35rem}
+.players li{display:flex;justify-content:space-between;gap:.6rem;padding:.35rem .6rem;background:var(--bg-deep);
+  border-left:2px solid var(--accent-dim)}
+.tag{color:var(--accent);font-weight:700;white-space:nowrap}
+.empty{color:var(--muted);padding:2rem 0}
+
+/* cadastro */
+.tabs{display:flex;gap:.4rem;margin-bottom:1.2rem}
+.tab{flex:1;text-align:center;padding:.7rem;cursor:pointer;font-family:'Chakra Petch';font-weight:700;border:0;
+  background:var(--panel);color:var(--muted);border-bottom:3px solid transparent}
+.tab.on{color:var(--text);border-bottom-color:var(--accent);background:var(--panel-2)}
+.narrow{max-width:640px;margin:0 auto}
+.member-row{display:grid;grid-template-columns:1fr 130px;gap:.6rem;margin-bottom:.6rem;align-items:center}
+.hint{color:var(--muted);font-size:.92rem;margin:-.3rem 0 1rem}
+.row{display:flex;gap:.7rem;flex-wrap:wrap;margin-top:1.2rem}
+
+/* admin */
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:.8rem .7rem;border-bottom:1px solid #3c3c3c;vertical-align:top}
+th{color:var(--accent);font-family:'Chakra Petch'}
+td small{color:var(--muted);display:block}
+td .actions{display:flex;gap:.5rem;flex-wrap:wrap}
+dialog{background:var(--panel);color:var(--text);border:2px solid var(--accent);padding:1.5rem;width:min(560px,92vw);margin:auto}
+dialog::backdrop{background:rgba(0,0,0,.7)}
+
+/* toast */
+#toast{position:fixed;right:1.2rem;bottom:1.2rem;display:grid;gap:.5rem;z-index:50}
+.toast{background:var(--panel-2);border-left:4px solid var(--accent);padding:.8rem 1.1rem;box-shadow:0 6px 20px #0008;animation:in .25s}
+.toast.err{border-color:var(--danger)}
+@keyframes in{from{transform:translateX(30px);opacity:0}}
+
+@media(max-width:700px){.hero{grid-template-columns:1fr}.member-row{grid-template-columns:1fr 100px}
+  table,thead,tbody,tr,th,td{display:block}thead{display:none}tr{padding:.6rem 0;border-bottom:1px solid #444}td{border:0;padding:.3rem 0}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ---------- v2: jogos ---------- */
+[hidden]{display:none!important}
+.hero.single{grid-template-columns:1fr}
+
+/* botão de jogo: imagem desfocada ao fundo, nítida no hover/clique */
+.games{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:1.3rem}
+.game-btn{position:relative;display:flex;flex-direction:column;justify-content:flex-end;gap:.5rem;min-height:300px;padding:1.4rem;
+  overflow:hidden;isolation:isolate;color:#fff;border-bottom:4px solid var(--accent);
+  clip-path:polygon(0 0,100% 0,100% calc(100% - 18px),calc(100% - 18px) 100%,0 100%)}
+.game-btn::before{content:"";position:absolute;inset:-14px;z-index:-2;background:var(--img) center/cover no-repeat;
+  filter:blur(6px) brightness(.55);transform:scale(1.06);transition:filter .4s ease,transform .5s ease}
+.game-btn::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(to top,rgba(14,14,14,.88),rgba(14,14,14,0) 62%);transition:opacity .4s}
+.game-btn:hover::before,.game-btn:focus-visible::before,.game-btn:active::before,.game-btn.on::before{
+  filter:blur(0) brightness(.95);transform:scale(1)}
+.game-btn:hover::after,.game-btn:focus-visible::after,.game-btn:active::after{opacity:.8}
+.game-btn .name{font-family:'Chakra Petch';font-weight:700;font-size:clamp(1.8rem,4vw,2.3rem);line-height:1.05;text-shadow:0 3px 14px #000c}
+.game-btn .count{color:#d9f7f2;text-shadow:0 2px 8px #000}
+.game-btn .count b{color:var(--accent);font-family:'Chakra Petch';font-size:1.3rem}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.3rem}
+.chips span{font-size:.85rem;font-weight:600;background:rgba(12,185,161,.2);border:1px solid var(--line);padding:.15rem .65rem;backdrop-filter:blur(3px)}
+
+/* faixa compacta na página do jogo */
+.mini-strip{grid-template-columns:repeat(3,1fr);gap:.8rem;margin-bottom:1.8rem}
+.game-btn.mini{min-height:84px;padding:.8rem 1rem;justify-content:center;border-bottom-width:3px}
+.game-btn.mini .name{font-size:1.15rem}
+.game-btn.mini:not(.on){border-bottom-color:transparent}
+.game-title{margin-bottom:1.3rem}
+.game-title h1{font-size:clamp(1.8rem,5vw,2.6rem)}
+.game-title p{color:var(--muted)}
+
+/* participantes e confrontos */
+.card.player{position:relative}
+.card.player .num{position:absolute;right:1rem;top:.7rem;font-family:'Chakra Petch';font-weight:700;color:rgba(12,185,161,.35);font-size:1.5rem}
+.card.player h3{margin-bottom:.4rem;padding-right:2.5rem}
+.matches{display:grid;gap:.8rem}
+.match{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:.9rem;background:var(--panel);padding:.9rem 1.1rem;
+  border-left:4px solid var(--accent);animation:in .4s both;animation-delay:calc(var(--i) * 70ms)}
+.match .p{font-weight:600;font-size:1.1rem}
+.match .p small{display:block;color:var(--muted);font-weight:400;font-size:.85rem}
+.match .p:last-child{text-align:right}
+.match .vs{font-family:'Chakra Petch';color:var(--accent);font-size:1.4rem}
+.match .bye{color:var(--muted);font-weight:400}
+
+/* admin */
+.bar{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:1rem}
+.badge{display:inline-block;min-width:1.5em;margin-left:.3rem;padding:0 .4em;background:var(--accent);color:#102420;font-size:.8rem;border-radius:99px}
+
+@media(max-width:700px){.mini-strip{grid-template-columns:1fr}.game-btn{min-height:220px}.game-btn.mini{min-height:64px}
+  .match{grid-template-columns:1fr;text-align:center}.match .p:last-child{text-align:center}}
+
+/* ---------- v3: regulamento, limite, confrontos concluídos ---------- */
+.tabs{flex-wrap:wrap}
+.tab{min-width:140px}
+.rules{margin-top:2.4rem}
+.rules h2{font-size:clamp(1.15rem,3vw,1.5rem);color:var(--accent);margin-bottom:1rem}
+.rules-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem}
+.rule{background:var(--panel);padding:1rem 1.2rem;border-left:3px solid var(--accent-dim)}
+.rule h3{font-size:1.05rem;margin-bottom:.5rem}
+.rule ul{padding-left:1.1rem;display:grid;gap:.4rem;color:#cfdcd9;font-size:.98rem}
+.limit{border-top-color:var(--danger)}
+.limit h2{color:var(--danger);margin-bottom:.6rem}
+.match .meta{grid-column:1/-1;color:var(--accent);font-size:.85rem;font-weight:600}
+.match.done{border-left-color:var(--muted);background:#262626}
+.match.done .vs{color:var(--muted)}
+
+.stats .stat{min-width:120px}
+@media(max-width:700px){.match.has-actions{grid-template-columns:1fr}}
+
+/* ---------- v4: rodadas, vencedor e campeão ---------- */
+.match.has-actions{grid-template-columns:1fr auto 1fr}
+.match .actions{grid-column:1/-1;display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.2rem}
+.match .p.win{color:var(--accent)}
+.match .p.win small{color:#7fd9cc}
+.match .p.lose{opacity:.5}
+.round-title{font-family:'Chakra Petch';color:var(--accent);margin:1.6rem 0 .7rem;padding-bottom:.3rem;border-bottom:1px solid var(--line)}
+.round-title:first-child{margin-top:0}
+.champion{display:flex;align-items:center;gap:1.2rem;padding:1.2rem 1.5rem;margin-bottom:1.4rem;
+  background:linear-gradient(120deg,rgba(12,185,161,.28),rgba(12,185,161,.06));border:2px solid var(--accent);
+  clip-path:polygon(0 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%);box-shadow:0 0 30px rgba(12,185,161,.25)}
+.champion .trophy{font-size:2.8rem;line-height:1}
+.champion small{display:block;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.1em}
+.champion b{display:block;font-family:'Chakra Petch';font-size:clamp(1.5rem,4vw,2.2rem);line-height:1.1}
+.champion span:not(.trophy){color:var(--muted);font-size:.95rem}
+.btn:disabled{opacity:.4;cursor:not-allowed;filter:none}
+.actions{display:flex;gap:.5rem;flex-wrap:wrap}

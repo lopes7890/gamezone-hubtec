@@ -1,0 +1,18 @@
+<% const fmt = (d) => new Date(d).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }); %>
+<div class="matches">
+  <% matches.forEach((m, i) => { %>
+    <div class="match <%= m.status === 'done' ? 'done' : '' %>" style="--i:<%= i %>">
+      <span class="p <%= m.winner === 1 ? 'win' : (m.winner === 2 ? 'lose' : '') %>"><%= m.p1.name %> <small><%= m.p1.sub %></small></span>
+      <% if (m.p2) { %>
+        <b class="vs">VS</b>
+        <span class="p <%= m.winner === 2 ? 'win' : (m.winner === 1 ? 'lose' : '') %>"><%= m.p2.name %> <small><%= m.p2.sub %></small></span>
+      <% } else { %>
+        <b class="vs">—</b>
+        <span class="p bye">folga: avança direto</span>
+      <% } %>
+      <% if (m.p2 && m.status === 'done') { %>
+        <span class="meta">✔ Concluído · <%= fmt(m.finishedAt) %><% if (m.winner) { %> · Vencedor: <%= m.winner === 1 ? m.p1.name : m.p2.name %><% } %></span>
+      <% } %>
+    </div>
+  <% }) %>
+</div>

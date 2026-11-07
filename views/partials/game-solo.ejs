@@ -1,0 +1,33 @@
+<div class="tabs">
+  <button class="tab on" data-t="inscrever">Inscrição</button>
+  <button class="tab" data-t="participantes">Participantes (<%= players.length %>)</button>
+  <button class="tab" data-t="confrontos">Confrontos (<%= bracket.pending %>)</button>
+  <button class="tab" data-t="realizados">Realizados (<%= bracket.played %>)</button>
+</div>
+
+<div data-pane="inscrever">
+  <section class="panel narrow">
+    <h2 style="margin-bottom:1rem">Inscrição em <%= game.name %></h2>
+    <form id="fSolo">
+      <div class="field"><label for="pname">Nome</label><input id="pname" maxlength="60" required></div>
+      <div class="field"><label for="page">Idade</label><input id="page" type="number" min="5" max="99" required></div>
+      <div class="row"><button class="btn">Inscrever-me</button></div>
+    </form>
+  </section>
+  <%- include('rules') %>
+</div>
+
+<section data-pane="participantes" hidden>
+  <% if (players.length) { %>
+    <div class="grid">
+      <% players.forEach((p, i) => { %>
+        <article class="card player"><span class="num"><%= String(i + 1).padStart(2, '0') %></span>
+          <h3><%= p.name %></h3><span class="tag"><%= p.age %> anos</span></article>
+      <% }) %>
+    </div>
+  <% } else { %><p class="empty">Ninguém inscrito ainda. Seja o primeiro!</p><% } %>
+</section>
+
+<section class="narrow" data-pane="confrontos" hidden><%- include('rounds') %></section>
+
+<section class="narrow" data-pane="realizados" hidden><%- include('done') %></section>
