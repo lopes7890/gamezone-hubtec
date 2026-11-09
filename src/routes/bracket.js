@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { GAMES } = require('../games');
 const { wrap, adminOnly } = require('../middleware');
+const { invalidate } = require('../cache');
 const { getBracket, drawRound, resetBracket, setWinner, deleteMatch } = require('../bracket');
 
 function game(req, res, next) {
@@ -13,10 +14,10 @@ router.get('/api/games/:game/bracket', game, wrap(async (req, res) => res.json(a
 
 // administrador
 router.post('/api/admin/games/:game/draw', adminOnly, game, wrap(async (req, res) => {
-  await drawRound(req.game); res.json(await getBracket(req.game));
+  await drawRound(req.game); invalidate(); res.json(await getBracket(req.game));
 }));
 router.post('/api/admin/games/:game/redraw', adminOnly, game, wrap(async (req, res) => {
-  await drawRound(req.game, true); res.json(await getBracket(req.game));
+  await drawRound(req.game, true); invalidate(); res.json(await getBracket(req.game));
 }));
 router.delete('/api/admin/games/:game/matches', adminOnly, game, wrap(async (req, res) => {
   await resetBracket(req.game); res.json({ ok: true });
