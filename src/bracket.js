@@ -1,6 +1,7 @@
 // Chaveamento por rodadas (mata-mata) para jogadores (MK1/FIFA 26) e equipes (CS 1.6).
 const { randomInt } = require('crypto');
 const { pool } = require('./db');
+const { cached } = require('./cache');
 
 const cols = (g) => (g.type === 'team' ? ['team1_id', 'team2_id'] : ['player1_id', 'player2_id']);
 const httpErr = (status, message) => Object.assign(new Error(message), { status });
@@ -29,7 +30,7 @@ function roundLabel(round, matches) {
   return name ? `Rodada ${round} · ${name}` : `Rodada ${round}`;
 }
 
-async function getBracket(game) {
+async function buildBracket(game) {
   const all = await listMatches(game.slug);
   const byRound = new Map();
   all.forEach((m) => { if (!byRound.has(m.round)) byRound.set(m.round, []); byRound.get(m.round).push(m); });
@@ -49,7 +50,8 @@ async function getBracket(game) {
     doneList: real.filter((m) => m.status === 'done').sort((a, b) => new Date(b.finishedAt) - new Date(a.finishedAt)),
   };
 }
-
+// versão com cache (o cache é limpo automaticamente a cada alteração)
+const getBracket = (game) => cached(`bracket:${game.slug}`, () => buildBracket(game));
 // ---------- sorteio ----------
 function shuffle(arr) {
   const a = [...arr];

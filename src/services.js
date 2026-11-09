@@ -1,4 +1,5 @@
 const { pool } = require('./db');
+const { cached } = require('./cache');
 
 // ---------- CS 1.6 ----------
 const SELECT_TEAMS = `
@@ -10,8 +11,10 @@ const SELECT_TEAMS = `
 const publicTeam = ({ pin, ...t }) => t;
 
 async function listTeams() {
-  const { rows } = await pool.query(`${SELECT_TEAMS} GROUP BY t.id ORDER BY t.created_at`);
-  return rows;
+  return cached('teams', async () => {
+    const { rows } = await pool.query(`${SELECT_TEAMS} GROUP BY t.id ORDER BY t.created_at`);
+    return rows;
+  });
 }
 
 async function getTeam(id) {
@@ -21,18 +24,22 @@ async function getTeam(id) {
 
 // ---------- jogos individuais ----------
 async function listPlayers(game) {
-  const { rows } = await pool.query('SELECT id, name, age FROM players WHERE game = $1 ORDER BY created_at, id', [game]);
-  return rows;
+  return cached(`players:${game}`, async () => {
+    const { rows } = await pool.query('SELECT id, name, age FROM players WHERE game = $1 ORDER BY created_at, id', [game]);
+    return rows;
+  });
 }
 
 async function getCounts() {
-  const [teams, players] = await Promise.all([
-    pool.query('SELECT COUNT(*)::int AS n FROM teams'),
-    pool.query('SELECT game, COUNT(*)::int AS n FROM players GROUP BY game'),
-  ]);
-  const counts = { cs16: teams.rows[0].n, mk1: 0, fifa26: 0 };
-  players.rows.forEach((r) => { counts[r.game] = r.n; });
-  return counts;
+  return cached('counts', async () => {
+    const [teams, players] = await Promise.all([
+      pool.query('SELECT COUNT(*)::int AS n FROM teams'),
+      pool.query('SELECT game, COUNT(*)::int AS n FROM players GROUP BY game'),
+    ]);
+    const counts = { cs16: teams.rows[0].n, mk1: 0, fifa26: 0 };
+    players.rows.forEach((r) => { counts[r.game] = r.n; });
+    return counts;
+  });
 }
 
 module.exports = { publicTeam, listTeams, getTeam, listPlayers, getCounts };
