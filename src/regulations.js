@@ -65,7 +65,7 @@ module.exports = {
     title: 'REGULAMENTO – COMPETIÇÃO DE COUNTER-STRIKE 1.6',
     sections: [
       { title: '1. Formação das equipes', items: [
-        'Cada equipe deverá ser composta por 5 jogadores titulares.',
+        'Cada equipe deverá ser composta por 5 jogadores titulares, todos alunos matriculados na Fatec Registro.',
         'Cada equipe deverá indicar um capitão responsável pela comunicação com a organização.',
         'Não será permitida a participação de jogadores em mais de uma equipe.',
         'Todos os participantes deverão estar inscritos antes do início da competição.',
