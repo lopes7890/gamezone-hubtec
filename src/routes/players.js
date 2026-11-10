@@ -2,7 +2,8 @@ const router = require('express').Router();
 const { pool } = require('../db');
 const { GAMES } = require('../games');
 const { wrap, adminOnly } = require('../middleware');
-const { listPlayers } = require('../services');
+// const { listPlayers } = require('../services');
+const { listPlayers, isRegistrationOpen } = require('../services');
 
 // só MK1 e FIFA 26 (jogos individuais)
 function soloGame(req, res, next) {
@@ -24,6 +25,7 @@ const DUP = 'Já existe um jogador com esse nome neste jogo.';
 router.get('/api/games/:game/players', soloGame, wrap(async (req, res) => res.json(await listPlayers(req.game.slug))));
 
 router.post('/api/games/:game/players', soloGame, wrap(async (req, res) => {
+  if (!(await isRegistrationOpen(req.game.slug))) return res.status(403).json({ error: 'As inscrições deste jogo estão encerradas.' });
   const err = validPlayer(req.body);
   if (err) return res.status(400).json({ error: err });
   try {

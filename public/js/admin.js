@@ -1,6 +1,7 @@
 const $ = (id) => document.getElementById(id);
 let pw = sessionStorage.getItem('adm') || '';
-const data = { teams: [], players: {}, bracket: {} };
+// const data = { teams: [], players: {}, bracket: {} };
+const data = { teams: [], players: {}, bracket: {}, reg: {} };
 let editTeamId = null, editPlayerId = null, showTab = null;
 const H = () => ({ 'x-admin-password': pw });
 const empty = (cols, msg) => `<tr><td colspan="${cols}" class="empty">${msg}</td></tr>`;
@@ -10,6 +11,7 @@ const q = (attr, slug) => document.querySelector(`[${attr}="${slug}"]`);
 async function load() {
   try {
     data.teams = await api('/api/admin/teams', { headers: H() });          // também valida a senha
+    data.reg = await api('/api/settings');
     for (const g of ADMIN.games) {
       data.bracket[g.slug] = await api(`/api/games/${g.slug}/bracket`);
       if (g.type === 'solo') data.players[g.slug] = await api(`/api/games/${g.slug}/players`);
@@ -22,9 +24,28 @@ async function load() {
   }
   $('login').hidden = true; $('panel').hidden = false;
   if (!showTab) showTab = setupTabs([...document.querySelectorAll('#atabs .tab')], [...document.querySelectorAll('#panel [data-pane]')], ADMIN.games[0].slug);
+  ADMIN.games.forEach((g) => renderReg(g.slug));
   ADMIN.games.forEach((g) => { g.type === 'team' ? renderTeams(g.slug) : renderPlayers(g.slug); renderBracket(g.slug); });
 }
 
+// ---------- inscrições abertas/encerradas ----------
+function renderReg(slug) {
+  const open = data.reg[slug] !== false;
+  $('reg-text-' + slug).innerHTML = open ? 'Inscrições <b style="color:var(--accent)">ABERTAS</b>.' : 'Inscrições <b style="color:var(--danger)">ENCERRADAS</b>: ninguém consegue se inscrever.';
+  const b = q('data-reg', slug);
+  b.textContent = open ? 'Encerrar inscrições' : 'Reabrir inscrições';
+  b.className = 'btn sm ' + (open ? 'danger' : '');
+}
+
+document.querySelectorAll('[data-reg]').forEach((b) => (b.onclick = async () => {
+  const slug = b.dataset.reg, open = data.reg[slug] === false; // novo estado (inverte o atual)
+  if (!open && !confirm('Encerrar as inscrições deste jogo? Ninguém conseguirá se inscrever até você reabrir.')) return;
+  try {
+    await api(`/api/admin/games/${slug}/registration`, { method: 'PUT', headers: H(), body: JSON.stringify({ open }) });
+    data.reg[slug] = open; renderReg(slug);
+    toast(open ? 'Inscrições reabertas.' : 'Inscrições encerradas.');
+  } catch (err) { toast(err.message, true); }
+}));
 // ---------- desenhar ----------
 function renderTeams(slug) {
   $('c-' + slug).textContent = data.teams.length;

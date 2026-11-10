@@ -16,7 +16,12 @@
 </section>
 
 <div data-pane="inscrever">
-  <% if (full) { %>
+  <% if (!registrationOpen) { %>
+    <section class="panel narrow limit">
+      <h2>Inscrições encerradas</h2>
+      <p>As inscrições para <%= game.name %> foram encerradas pela organização.</p>
+    </section>
+  <% } else if (full) { %>
     <section class="panel narrow limit">
       <h2>Limite de inscrições atingido</h2>
       <p>As <%= game.maxTeams %> vagas para equipes de CS 1.6 já foram preenchidas. Novas inscrições não estão sendo aceitas.</p>
@@ -57,6 +62,6 @@
   </form>
 </section>
 
-<section class="narrow" data-pane="confrontos" hidden><%- include('rounds') %></section>
+<section data-pane="confrontos" hidden><%- include('rounds') %></section>
 
 <section class="narrow" data-pane="realizados" hidden><%- include('done') %></section>

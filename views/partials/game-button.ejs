@@ -2,6 +2,9 @@
 <a class="game-btn <%= mini ? 'mini' : '' %> <%= locals.current ? 'on' : '' %>" href="/jogos/<%= g.slug %>" style="--img:url('<%= g.image %>')">
   <span class="name"><%= g.name %></span>
   <% if (!mini) { %>
+    <% if (locals.closed) { 
+      %><span class="closed-tag">Inscrições encerradas</span><% 
+    } %>
     <span class="count"><b><%= count %><%= g.maxTeams ? '/' + g.maxTeams : '' %></b> <%= g.type === 'team' ? 'equipes inscritas' : 'jogadores inscritos' %></span>
     <span class="chips"><% g.sections.forEach(s => { %><span><%= s %></span><% }) %></span>
   <% } %>

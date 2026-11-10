@@ -77,3 +77,9 @@ SELECT m.id, m.game, m.round, m.side1_name, m.side2_name,
        m.finished_at, m.archived_at
 FROM matches m
 WHERE m.status = 'done' AND m.side2_name IS NOT NULL;
+
+-- ===== v7: abrir/encerrar inscrições por jogo =====
+CREATE TABLE IF NOT EXISTS game_settings (
+  game              VARCHAR(20) PRIMARY KEY,
+  registration_open BOOLEAN NOT NULL DEFAULT true
+);
