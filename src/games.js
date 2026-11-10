@@ -4,8 +4,8 @@ const GAMES = {
   cs16: {
     slug: 'cs16', name: 'CS 1.6', type: 'team',
     image: '/img/cs16.png',
-    tagline: 'Equipes de 5 jogadores · limite de 6 equipes',
-    maxTeams: 6,
+    tagline: 'Equipes de 5 jogadores · limite de 8 equipes',
+    maxTeams: 8,
     sections: ['Equipes', 'Inscrição', 'Gerenciar integrantes'],
   },
   mk1: {
