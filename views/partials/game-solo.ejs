@@ -7,14 +7,22 @@
 
 <div data-pane="inscrever">
   <section class="panel narrow">
-    <h2 style="margin-bottom:1rem">Inscrição em <%= game.name %></h2>
-    <form id="fSolo">
-      <div class="field"><label for="pname">Nome</label><input id="pname" maxlength="60" required></div>
-      <div class="field"><label for="page">Idade</label><input id="page" type="number" min="5" max="99" required></div>
-      <div class="row"><button class="btn">Inscrever-me</button></div>
-    </form>
-  </section>
-  <%- include('rules') %>
+      <% if (!registrationOpen) { %>
+        <section class="panel narrow limit">
+        <h2>Inscrições encerradas</h2>
+        <p>As inscrições para <%= game.name %> foram encerradas pela organização.</p>
+        </section>
+      <% } else { %>
+          <section class="panel narrow">
+            <h2 style="margin-bottom:1rem">Inscrição em <%= game.name %></h2>
+            <form id="fSolo">
+              <div class="field"><label for="pname">Nome</label><input id="pname" maxlength="60" required></div>
+              <div class="field"><label for="page">Idade</label><input id="page" type="number" min="5" max="99" required></div>
+              <div class="row"><button class="btn">Inscrever-me</button></div>
+            </form>
+          </section>
+      <% } %>
+      <%- include('rules') %>
 </div>
 
 <section data-pane="participantes" hidden>

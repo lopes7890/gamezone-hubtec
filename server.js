@@ -31,6 +31,7 @@ app.use(require('./src/routes/pages'));
 app.use(require('./src/routes/teams'));
 app.use(require('./src/routes/players'));
 app.use(require('./src/routes/bracket'));
+app.use(require('./src/routes/settings'));
 
 app.use((req, res) => res.status(404).send('Página não encontrada.'));
 app.use((err, req, res, next) => { console.error(err); res.status(500).send('Erro no servidor.'); });

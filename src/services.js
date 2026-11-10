@@ -30,6 +30,23 @@ async function listPlayers(game) {
   });
 }
 
+// ---------- inscrições abertas/encerradas ----------
+async function getRegistration() { // { mk1: false, ... } só com jogos configurados; ausente = aberto
+  return cached('registration', async () => {
+    const { rows } = await pool.query('SELECT game, registration_open FROM game_settings');
+    const map = {};
+    rows.forEach((r) => { map[r.game] = r.registration_open; });
+    return map;
+  });
+}
+const isRegistrationOpen = async (slug) => (await getRegistration())[slug] !== false;
+
+async function setRegistration(slug, open) {
+  await pool.query(
+    'INSERT INTO game_settings (game, registration_open) VALUES ($1, $2) ON CONFLICT (game) DO UPDATE SET registration_open = EXCLUDED.registration_open',
+    [slug, open]);
+}
+
 async function getCounts() {
   return cached('counts', async () => {
     const [teams, players] = await Promise.all([
@@ -42,4 +59,4 @@ async function getCounts() {
   });
 }
 
-module.exports = { publicTeam, listTeams, getTeam, listPlayers, getCounts };
+module.exports = { publicTeam, listTeams, getTeam, listPlayers, getCounts, getRegistration, isRegistrationOpen, setRegistration };

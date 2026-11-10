@@ -18,6 +18,12 @@
 
     <% all.forEach(g => { %>
       <section data-pane="<%= g.slug %>" hidden>
+        <div class="panel" style="margin-bottom:1.4rem">
+          <div class="bar" style="margin:0">
+            <div><h3>Inscrições</h3><p class="hint" style="margin:.2rem 0 0" id="reg-text-<%= g.slug %>"></p></div>
+            <button class="btn sm" data-reg="<%= g.slug %>">Encerrar inscrições</button>
+          </div>
+        </div>
         <div class="panel" style="overflow-x:auto;margin-bottom:1.4rem">
           <% if (g.type === 'team') { %>
             <h3 style="margin-bottom:.6rem">Equipes inscritas</h3>

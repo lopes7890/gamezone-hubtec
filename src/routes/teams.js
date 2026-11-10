@@ -2,8 +2,11 @@ const router = require('express').Router();
 const { pool } = require('../db');
 const { wrap, adminOnly } = require('../middleware');
 const { GAMES } = require('../games');
-const { publicTeam, listTeams, getTeam } = require('../services');
+// const { publicTeam, listTeams, getTeam } = require('../services');
 
+const { publicTeam, listTeams, getTeam, isRegistrationOpen } = require('../services');
+
+const REG_CLOSED = 'As inscrições deste jogo estão encerradas.';
 const LIMIT_MSG = 'Limite de inscrições atingido: todas as vagas do CS 1.6 foram preenchidas.';
 
 function validMembers(members) {
@@ -29,6 +32,7 @@ async function replaceMembers(client, teamId, members) {
 router.get('/api/teams', wrap(async (req, res) => res.json((await listTeams()).map(publicTeam))));
 
 router.post('/api/teams', wrap(async (req, res) => {
+  if (!(await isRegistrationOpen('cs16'))) return res.status(403).json({ error: REG_CLOSED });
   const { name, pin, members } = req.body;
   if (!name || !name.trim()) return res.status(400).json({ error: 'Informe o nome da equipe.' });
   if (!pin || String(pin).length < 4) return res.status(400).json({ error: 'O PIN precisa ter pelo menos 4 caracteres.' });

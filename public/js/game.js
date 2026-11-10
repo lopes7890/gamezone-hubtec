@@ -17,9 +17,14 @@ if ($('fSolo')) {
       await api(`/api/games/${GAME.slug}/players`, { method: 'POST', body: JSON.stringify({ name: $('pname').value, age: Number($('page').value) }) });
       toast('Inscrição realizada!');
       reloadAt('participantes');
-    } catch (err) { toast(err.message, true); }
+    } catch (err) {
+      toast(err.message, true);
+      if (err.message.startsWith('As inscrições')) reloadAt('inscrever', 1800);
+    }
   };
 }
+
+// ---------- CS 1.6 (equipes) ----------
 
 // ---------- CS 1.6 (equipes) ----------
 if ($('q')) {
@@ -42,7 +47,7 @@ if ($('fNew')) { // some quando o limite de equipes é atingido
       reloadAt('equipes');
     } catch (err) {
       toast(err.message, true);
-      if (err.message.startsWith('Limite')) reloadAt('inscrever', 1800); // mostra a mensagem de limite
+      if (/^(Limite|As inscrições)/.test(err.message)) reloadAt('inscrever', 1800);
     }
   };
 }

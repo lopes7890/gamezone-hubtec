@@ -16,12 +16,12 @@
 </section>
 
 <div data-pane="inscrever">
-  <% if (full) { %>
+  <% if (!registrationOpen) { %>
     <section class="panel narrow limit">
-      <h2>Limite de inscrições atingido</h2>
-      <p>As <%= game.maxTeams %> vagas para equipes de CS 1.6 já foram preenchidas. Novas inscrições não estão sendo aceitas.</p>
+      <h2>Inscrições encerradas</h2>
+      <p>As inscrições para <%= game.name %> foram encerradas pela organização.</p>
     </section>
-  <% } else { %>
+  <% } else if (full) { %>
     <section class="panel narrow">
       <h2 style="margin-bottom:.4rem">Nova equipe</h2>
       <h4 style="margin-bottom:.4rem; color: #a24655;">A competição de CS 1.6 é exclusivamente para alunos matriculados na Fatec Registro; as equipes que descumprirem esta regra serão desclassificadas!</h4>

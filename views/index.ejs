@@ -9,7 +9,7 @@
   </section>
   <section class="games">
     <% Object.values(games).forEach(g => { %>
-      <%- include('partials/game-button', { g, count: counts[g.slug] }) %>
+      <%- include('partials/game-button', { g, count: counts[g.slug], closed: registration[g.slug] === false }) %>
     <% }) %>
   </section>
 </main>
