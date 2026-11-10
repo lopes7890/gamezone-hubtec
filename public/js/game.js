@@ -19,7 +19,7 @@ if ($('fSolo')) {
       reloadAt('participantes');
     } catch (err) {
       toast(err.message, true);
-      if (err.message.startsWith('As inscrições')) reloadAt('inscrever', 1800);
+      if (/^(Limite|As inscrições)/.test(err.message)) reloadAt('inscrever', 1800);
     }
   };
 }
