@@ -118,10 +118,10 @@ function renderBracket(slug) {
   q("data-redraw", slug).disabled = !b.canRedraw;
   q("data-reset", slug).disabled = !b.exists;
   const poster = q("data-poster", slug);
-  poster.disabled = !b.champion; // só exporta a competição concluída
-  poster.title = b.champion
-    ? ""
-    : "Disponível quando a competição for concluída (final com vencedor).";
+  poster.disabled = !b.exists;
+  poster.title = b.exists
+    ? 'Gerar imagens do chaveamento'
+    : 'Gere o chaveamento primeiro.';
 
   $("status-" + slug).textContent = !b.exists
     ? "Nenhum sorteio realizado ainda."
@@ -454,8 +454,12 @@ document.addEventListener('click', async (e) => {
     return toast('Modalidade não encontrada.', true);
   }
 
-  if (!br || !br.champion) {
-    return toast('A competição precisa estar concluída.', true);
+  // if (!br || !br.champion) {
+  //   return toast('A competição precisa estar concluída.', true);
+  // }
+
+  if (!br || !br.exists) {
+    return toast('Gere o chaveamento antes de exportar.', true);
   }
 
   b.disabled = true;
