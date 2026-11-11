@@ -46,8 +46,7 @@ ALTER TABLE matches ADD COLUMN IF NOT EXISTS team1_id INTEGER REFERENCES teams(i
 ALTER TABLE matches ADD COLUMN IF NOT EXISTS team2_id INTEGER REFERENCES teams(id) ON DELETE CASCADE;
 ALTER TABLE matches ADD COLUMN IF NOT EXISTS round SMALLINT NOT NULL DEFAULT 1;
 ALTER TABLE matches ADD COLUMN IF NOT EXISTS winner SMALLINT CHECK (winner IN (1, 2)); -- lado vencedor
--- folgas antigas passam a ser "concluídas" (o participante avança direto)
-UPDATE matches SET status = 'done', winner = 1 WHERE status = 'pending' AND player2_id IS NULL AND team2_id IS NULL;
+
 
 -- ===== v5: histórico permanente das partidas =====
 ALTER TABLE matches ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ;   -- preenchido ao clicar em "Reiniciar"
@@ -83,3 +82,11 @@ CREATE TABLE IF NOT EXISTS game_settings (
   game              VARCHAR(20) PRIMARY KEY,
   registration_open BOOLEAN NOT NULL DEFAULT true
 );
+
+-- ===== v6: horário agendado de cada confronto =====
+ALTER TABLE matches ADD COLUMN IF NOT EXISTS scheduled_at TIMESTAMPTZ;
+
+-- ===== v8: chaveamento fixo (eliminação simples): cada partida aponta para a próxima =====
+ALTER TABLE matches ADD COLUMN IF NOT EXISTS bye BOOLEAN NOT NULL DEFAULT false;                 -- folga (avança direto)
+ALTER TABLE matches ADD COLUMN IF NOT EXISTS next_match_id INTEGER REFERENCES matches(id) ON DELETE SET NULL;
+ALTER TABLE matches ADD COLUMN IF NOT EXISTS next_slot SMALLINT;                                 -- 1 ou 2: lado onde o vencedor entra
