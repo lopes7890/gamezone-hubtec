@@ -93,7 +93,8 @@
 </main>
 <%- include('partials/footer') %>
 <script>window.ADMIN = <%- JSON.stringify({ games: all.map(g => ({ slug: g.slug, type: g.type, name: g.name, image: g.image })) }) %>;</script>
-<script src="/js/poster.js"></script>
+<!-- <script src="/js/poster.js"></script> -->
+<script src="/js/poster.js?v=3"></script>
 <script src="/js/admin.js"></script>
 </body>
 </html>
