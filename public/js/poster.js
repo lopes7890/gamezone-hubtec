@@ -79,168 +79,134 @@ const Poster = (() => {
 
   // ---------- fundo, cabeçalho e rodapé (cores do site) ----------
 
-  
-function base(ctx, { game, art, tag, site, height }) {
-  const isStory = height === STORY_H;
+  function base(ctx, { game, art, tag, site, height }) {
+    const isStory = height === STORY_H;
 
-  // Início do conteúdo dentro da área segura
-  const safeTop = isStory ? STORY_SAFE_TOP : 0;
-  const safeBottom = isStory ? STORY_SAFE_BOTTOM : 0;
+    // Início do conteúdo dentro da área segura
+    const safeTop = isStory ? STORY_SAFE_TOP : 0;
+    const safeBottom = isStory ? STORY_SAFE_BOTTOM : 0;
 
-  const artHeight = 290;
-  const headerBottom = safeTop + artHeight;
+    const artHeight = 290;
+    const headerBottom = safeTop + artHeight;
 
-  ctx.fillStyle = C.bg;
-  ctx.fillRect(0, 0, W, height);
+    ctx.fillStyle = C.bg;
+    ctx.fillRect(0, 0, W, height);
 
-  // Grade de fundo
-  ctx.strokeStyle = "rgba(12,185,161,.06)";
-  ctx.lineWidth = 1;
+    // Grade de fundo
+    ctx.strokeStyle = "rgba(12,185,161,.06)";
+    ctx.lineWidth = 1;
 
-  for (let x = 0; x <= W; x += 54) {
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, height);
-    ctx.stroke();
-  }
+    for (let x = 0; x <= W; x += 54) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+      ctx.stroke();
+    }
 
-  for (let y = 0; y <= height; y += 54) {
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(W, y);
-    ctx.stroke();
-  }
+    for (let y = 0; y <= height; y += 54) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(W, y);
+      ctx.stroke();
+    }
 
-  // Arte do jogo: começa depois da margem superior
-  if (art && art.width) {
-    const s = Math.max(
-      W / art.width,
-      artHeight / art.height
+    // Arte do jogo: começa depois da margem superior
+    if (art && art.width) {
+      const s = Math.max(W / art.width, artHeight / art.height);
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, safeTop, W, artHeight);
+      ctx.clip();
+
+      ctx.drawImage(
+        art,
+        (W - art.width * s) / 2,
+        safeTop + (artHeight - art.height * s) / 2,
+        art.width * s,
+        art.height * s,
+      );
+
+      ctx.restore();
+    }
+
+    // Degradê do cabeçalho
+    const g = ctx.createLinearGradient(0, safeTop, 0, headerBottom);
+
+    g.addColorStop(0, "rgba(24,24,24,.45)");
+    g.addColorStop(1, C.bg);
+
+    ctx.fillStyle = g;
+    ctx.fillRect(0, safeTop, W, artHeight);
+
+    // Faixa superior decorativa
+    ctx.fillStyle = C.accent;
+    ctx.fillRect(0, safeTop, W, 10);
+
+    // Identificação do evento
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+
+    font(ctx, 700, 26);
+    spacing(ctx, 8);
+
+    ctx.fillStyle = C.accent;
+    ctx.fillText("GAME ZONE | HUBTEC'26", 60, 66 + safeTop);
+
+    spacing(ctx, 0);
+
+    // Nome do jogo
+    ctx.fillStyle = C.text;
+    ctx.shadowColor = "rgba(0,0,0,.6)";
+    ctx.shadowBlur = 16;
+
+    ctx.fillText(
+      fit(ctx, game.name.toUpperCase(), W - 120, 92),
+      60,
+      168 + safeTop,
     );
 
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(0, safeTop, W, artHeight);
-    ctx.clip();
+    ctx.shadowBlur = 0;
 
-    ctx.drawImage(
-      art,
-      (W - art.width * s) / 2,
-      safeTop + (artHeight - art.height * s) / 2,
-      art.width * s,
-      art.height * s
+    // Identificação do chaveamento
+    const label = fit(ctx, tag, W - 160, 26);
+
+    spacing(ctx, 2);
+
+    const tw = ctx.measureText(label).width + 44;
+
+    rr(ctx, 60, 192 + safeTop, tw, 50, 6);
+
+    ctx.fillStyle = C.accent;
+    ctx.fill();
+
+    ctx.fillStyle = "#102420";
+    ctx.textBaseline = "middle";
+
+    ctx.fillText(label, 82, 218 + safeTop);
+
+    spacing(ctx, 0);
+
+    // Rodapé dentro da área segura
+    ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = C.muted;
+
+    font(ctx, 500, 22, BODY);
+
+    const footerOffset = isStory ? safeBottom : 0;
+
+    ctx.fillText("@fatecregistro", 60, height - footerOffset - 70);
+
+    ctx.fillText(
+      `Inscrições e confrontos em ${site}`,
+      60,
+      height - footerOffset - 40,
     );
 
-    ctx.restore();
+    // Faixa inferior decorativa antes da margem reservada
+    ctx.fillStyle = C.accent;
+    ctx.fillRect(0, height - safeBottom - 12, W, 12);
   }
-
-  // Degradê do cabeçalho
-  const g = ctx.createLinearGradient(
-    0,
-    safeTop,
-    0,
-    headerBottom
-  );
-
-  g.addColorStop(0, "rgba(24,24,24,.45)");
-  g.addColorStop(1, C.bg);
-
-  ctx.fillStyle = g;
-  ctx.fillRect(0, safeTop, W, artHeight);
-
-  // Faixa superior decorativa
-  ctx.fillStyle = C.accent;
-  ctx.fillRect(0, safeTop, W, 10);
-
-  // Identificação do evento
-  ctx.textAlign = "left";
-  ctx.textBaseline = "alphabetic";
-
-  font(ctx, 700, 26);
-  spacing(ctx, 8);
-
-  ctx.fillStyle = C.accent;
-  ctx.fillText(
-    "GAME ZONE | HUBTEC'26",
-    60,
-    66 + safeTop
-  );
-
-  spacing(ctx, 0);
-
-  // Nome do jogo
-  ctx.fillStyle = C.text;
-  ctx.shadowColor = "rgba(0,0,0,.6)";
-  ctx.shadowBlur = 16;
-
-  ctx.fillText(
-    fit(ctx, game.name.toUpperCase(), W - 120, 92),
-    60,
-    168 + safeTop
-  );
-
-  ctx.shadowBlur = 0;
-
-  // Identificação do chaveamento
-  const label = fit(ctx, tag, W - 160, 26);
-
-  spacing(ctx, 2);
-
-  const tw = ctx.measureText(label).width + 44;
-
-  rr(
-    ctx,
-    60,
-    192 + safeTop,
-    tw,
-    50,
-    6
-  );
-
-  ctx.fillStyle = C.accent;
-  ctx.fill();
-
-  ctx.fillStyle = "#102420";
-  ctx.textBaseline = "middle";
-
-  ctx.fillText(
-    label,
-    82,
-    218 + safeTop
-  );
-
-  spacing(ctx, 0);
-
-  // Rodapé dentro da área segura
-  ctx.textBaseline = "alphabetic";
-  ctx.fillStyle = C.muted;
-
-  font(ctx, 500, 22, BODY);
-
-  const footerOffset = isStory ? safeBottom : 0;
-
-  ctx.fillText(
-    "@fatecregistro",
-    60,
-    height - footerOffset - 70
-  );
-
-  ctx.fillText(
-    `Inscrições e confrontos em ${site}`,
-    60,
-    height - footerOffset - 40
-  );
-
-  // Faixa inferior decorativa antes da margem reservada
-  ctx.fillStyle = C.accent;
-  ctx.fillRect(
-    0,
-    height - safeBottom - 12,
-    W,
-    12
-  );
-}
-
 
   function trophy(ctx, cx, bottomY, s) {
     // taça (base apoiada em bottomY)
@@ -284,14 +250,14 @@ function base(ctx, { game, art, tag, site, height }) {
     const L = 46;
     const isStory = height === STORY_H;
 
-const top = isStory ? 570 : 305;
-const headH = 62;
+    const top = isStory ? 570 : 305;
+    const headH = 62;
 
-const bottom = isStory
-  ? height - STORY_SAFE_BOTTOM - STORY_FOOTER_SPACE
-  : height - 80;
+    const bottom = isStory
+      ? height - STORY_SAFE_BOTTOM - STORY_FOOTER_SPACE
+      : height - 80;
 
-const A = bottom - top - headH;
+    const A = bottom - top - headH;
     const gap = n <= 4 ? 54 : n === 5 ? 42 : 30;
     const cw = (W - 2 * L - gap * (n - 1)) / n;
     const hasWhen = bracket.rounds.some((r) =>
@@ -481,18 +447,19 @@ const A = bottom - top - headH;
 
       // Logo HubTec'26
       if (logo) {
-       const logoWidth = 190;
-const logoHeight = logoWidth * (92 / 466);
+        const logoWidth = 190;
+        const logoHeight = logoWidth * (92 / 466);
 
-const x = W - logoWidth - 48;
+        const x = W - logoWidth - 48;
 
-const y = height === STORY_H
-  ? height - STORY_SAFE_BOTTOM - logoHeight - 20
-  : height - logoHeight - 48;
+        const y =
+          height === STORY_H
+            ? height - STORY_SAFE_BOTTOM - logoHeight - 38
+            : height - logoHeight - 38;
 
-ctx.save();
-ctx.drawImage(logo, x, y, logoWidth, logoHeight);
-ctx.restore();
+        ctx.save();
+        ctx.drawImage(logo, x, y, logoWidth, logoHeight);
+        ctx.restore();
       }
 
       return { name, title, canvas };
