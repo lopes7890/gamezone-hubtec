@@ -483,7 +483,7 @@ document.addEventListener('click', async (e) => {
 
     // Carrega imagem de fundo
     const art = await loadImg(game.image);
-    const logo = await loadImg('/img/logo-hubtec-26.svg');
+    const logo = await loadImg('/img/logo-hubtec-26.png');
 
     const imgs = await Poster.build({
       game,
