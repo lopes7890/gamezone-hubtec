@@ -46,6 +46,7 @@
             <div class="actions">
               <button class="btn sm" data-draw="<%= g.slug %>">Sortear 1ª rodada</button>
               <button class="btn ghost sm" data-redraw="<%= g.slug %>">Refazer rodada atual</button>
+              <button class="btn ghost sm" data-poster="<%= g.slug %>">Gerar imagens (Instagram)</button>
               <button class="btn danger sm" data-reset="<%= g.slug %>">Reiniciar</button>
             </div>
           </div>
@@ -85,9 +86,15 @@
       <div class="row"><button class="btn">Salvar</button><button type="button" class="btn ghost" data-close>Cancelar</button></div>
     </form>
   </dialog>
+  <dialog id="dlgPoster" class="wide">
+    <div class="bar"><h3>Imagens para Instagram Feed e Stories</h3><button type="button" class="btn ghost sm" data-close>Fechar</button></div>
+    <div id="posters" class="posters"></div>
+  </dialog>
 </main>
 <%- include('partials/footer') %>
-<script>window.ADMIN = <%- JSON.stringify({ games: all.map(g => ({ slug: g.slug, type: g.type })) }) %>;</script>
+<script>window.ADMIN = <%- JSON.stringify({ games: all.map(g => ({ slug: g.slug, type: g.type, name: g.name, image: g.image })) }) %>;</script>
+<!-- <script src="/js/poster.js"></script> -->
+<script src="/js/poster.js?v=3"></script>
 <script src="/js/admin.js"></script>
 </body>
 </html>

@@ -1,10 +1,18 @@
-// Chaveamento por rodadas (mata-mata) para jogadores (MK1/FIFA 26) e equipes (CS 1.6).
+// Chaveamento de mata-mata (eliminação simples) com estrutura FIXA:
+// o vencedor do jogo 1 enfrenta o vencedor do jogo 2, e assim por diante até a final.
+// O sorteio acontece uma única vez (posições da 1ª rodada); depois o vencedor de cada jogo avança sozinho.
 const { randomInt } = require('crypto');
 const { pool } = require('./db');
 const { cached } = require('./cache');
+const { GAMES } = require('./games');
 
 const cols = (g) => (g.type === 'team' ? ['team1_id', 'team2_id'] : ['player1_id', 'player2_id']);
 const httpErr = (status, message) => Object.assign(new Error(message), { status });
+
+const roundName = (round, total) => {
+  const left = total - round;
+  return left === 0 ? 'Final' : left === 1 ? 'Semifinal' : left === 2 ? 'Quartas de final' : left === 3 ? 'Oitavas de final' : `Rodada ${round}`;
+};
 
 // ---------- leitura ----------
 async function listMatches(slug) {
@@ -12,46 +20,54 @@ async function listMatches(slug) {
     CASE WHEN p${n}.id IS NOT NULL THEN p${n}.age::text || ' anos'
          ELSE (SELECT string_agg(x.name, ', ' ORDER BY x.id) FROM members x WHERE x.team_id = t${n}.id) END AS s${n}`;
   const { rows } = await pool.query(`
-    SELECT m.id, m.round, m.position, m.status, m.winner, m.finished_at, ${side(1)}, ${side(2)}
+    SELECT m.id, m.round, m.position, m.status, m.winner, m.bye, m.finished_at, m.scheduled_at, ${side(1)}, ${side(2)}
     FROM matches m
     LEFT JOIN players p1 ON p1.id = m.player1_id LEFT JOIN players p2 ON p2.id = m.player2_id
     LEFT JOIN teams   t1 ON t1.id = m.team1_id   LEFT JOIN teams   t2 ON t2.id = m.team2_id
     WHERE m.game = $1 AND m.archived_at IS NULL ORDER BY m.round, m.position`, [slug]);
   return rows.map((r) => ({
-    id: r.id, round: r.round, status: r.status, winner: r.winner, finishedAt: r.finished_at,
-    p1: { name: r.n1, sub: r.s1 },
-    p2: r.n2 ? { name: r.n2, sub: r.s2 } : null, // null = folga (avança direto)
+    id: r.id, round: r.round, position: r.position, status: r.status, winner: r.winner, bye: r.bye,
+    finishedAt: r.finished_at, scheduledAt: r.scheduled_at,
+    p1: r.n1 ? { name: r.n1, sub: r.s1 } : null, // null = ainda a definir
+    p2: r.n2 ? { name: r.n2, sub: r.s2 } : null, // (em folga, o lado 2 fica vazio)
   }));
-}
-
-function roundLabel(round, matches) {
-  const n = matches.length * 2 - matches.filter((m) => !m.p2).length; // participantes na rodada
-  const name = n <= 2 ? 'Final' : n <= 4 ? 'Semifinal' : n <= 8 ? 'Quartas de final' : n <= 16 ? 'Oitavas de final' : null;
-  return name ? `Rodada ${round} · ${name}` : `Rodada ${round}`;
 }
 
 async function buildBracket(game) {
   const all = await listMatches(game.slug);
-  const byRound = new Map();
-  all.forEach((m) => { if (!byRound.has(m.round)) byRound.set(m.round, []); byRound.get(m.round).push(m); });
-  const rounds = [...byRound.entries()].sort((a, b) => a[0] - b[0])
-    .map(([round, matches]) => ({ round, label: roundLabel(round, matches), matches }));
-  const last = rounds[rounds.length - 1];
-  const lastDone = !!last && last.matches.every((m) => m.status === 'done' && m.winner);
-  const champion = lastDone && last.matches.length === 1 && last.matches[0].p2
-    ? (last.matches[0].winner === 1 ? last.matches[0].p1 : last.matches[0].p2) : null;
-  const real = all.filter((m) => m.p2); // partidas de verdade (sem folgas)
-  const lastReal = last ? last.matches.filter((m) => m.p2) : [];
+  const total = all.length ? Math.max(...all.map((m) => m.round)) : 0;
+  const byKey = new Map(all.map((m) => [`${m.round}:${m.position}`, m]));
+
+  let num = 0; // numeração dos jogos (folgas não contam)
+  all.forEach((m) => { m.number = m.bye ? null : ++num; });
+  all.forEach((m) => {
+    const next = byKey.get(`${m.round + 1}:${Math.ceil(m.position / 2)}`);
+    const src = (pos) => { const f = byKey.get(`${m.round - 1}:${pos}`); return f && f.number ? `Vencedor do jogo ${f.number}` : null; };
+    m.src1 = m.p1 ? null : src(2 * m.position - 1);  // texto do lado ainda indefinido
+    m.src2 = m.p2 ? null : src(2 * m.position);
+    m.playable = !!(m.p1 && m.p2 && !m.bye && m.status !== 'done');
+    m.canReopen = m.status === 'done' && !m.bye && !(next && next.status === 'done');
+  });
+
+  const rounds = [];
+  for (let r = 1; r <= total; r++) rounds.push({ round: r, short: roundName(r, total), matches: all.filter((m) => m.round === r) });
+
+  const real = all.filter((m) => !m.bye);
+  const done = real.filter((m) => m.status === 'done');
+  const final = byKey.get(`${total}:1`);
+  const champion = final && final.status === 'done' ? (final.winner === 1 ? final.p1 : final.p2) : null;
   return {
-    rounds, current: last ? last.round : 0, champion, canDrawNext: lastDone && !champion,
-    played: real.filter((m) => m.status === 'done').length,
-    pending: real.filter((m) => m.status !== 'done').length,
-    progress: { done: lastReal.filter((m) => m.status === 'done').length, total: lastReal.length },
-    doneList: real.filter((m) => m.status === 'done').sort((a, b) => new Date(b.finishedAt) - new Date(a.finishedAt)),
+    exists: all.length > 0, total, rounds, champion,
+    canRedraw: all.length > 0 && done.length === 0,
+    played: done.length, pending: real.length - done.length,
+    progress: { done: done.length, total: real.length },
+    doneList: [...done].sort((a, b) => new Date(b.finishedAt) - new Date(a.finishedAt)),
   };
 }
+
 // versão com cache (o cache é limpo automaticamente a cada alteração)
 const getBracket = (game) => cached(`bracket:${game.slug}`, () => buildBracket(game));
+
 // ---------- sorteio ----------
 function shuffle(arr) {
   const a = [...arr];
@@ -59,74 +75,65 @@ function shuffle(arr) {
   return a;
 }
 
-// embaralha e forma os pares; se for ímpar, um participante fica com folga
-// (de preferência quem ainda não teve folga)
-function makePairs(ids, hadBye = new Set()) {
-  let s = shuffle(ids), bye = null;
-  if (s.length % 2) {
-    const pool_ = s.filter((id) => !hadBye.has(id));
-    bye = (pool_.length ? pool_ : s)[randomInt((pool_.length ? pool_ : s).length)];
-    s = s.filter((id) => id !== bye);
+// ordem padrão de semeadura para S vagas (S potência de 2): [1,S,...]. Os jogos da 1ª rodada
+// são (ordem[0] x ordem[1]), (ordem[2] x ordem[3])... e as folgas ficam espalhadas pela árvore.
+function seedOrder(S) {
+  let order = [1, 2];
+  while (order.length < S) { const n = order.length * 2; order = order.flatMap((s) => [s, n + 1 - s]); }
+  return order;
+}
+
+async function entities(client, game) {
+  const q = game.type === 'team' ? ['SELECT id, name FROM teams ORDER BY id', []] : ['SELECT id, name FROM players WHERE game = $1 ORDER BY id', [game.slug]];
+  return (await client.query(...q)).rows;
+}
+
+// cria TODAS as partidas (todas as rodadas) de uma vez
+async function createBracket(client, game, list) {
+  const [c1, c2] = cols(game);
+  const names = new Map(list.map((e) => [e.id, e.name]));
+  const N = list.length;
+  let S = 2; while (S < N) S *= 2;          // tamanho da árvore (potência de 2)
+  const R = Math.log2(S);                    // nº de rodadas
+  const seeds = shuffle(list.map((e) => e.id)); // sorteio: a posição na lista define o "seed"
+  const order = seedOrder(S);
+  const idOf = {};
+
+  for (let r = R; r >= 1; r--) {             // da final para a 1ª rodada (para já saber o "próximo jogo")
+    for (let p = 1; p <= S / 2 ** r; p++) {
+      let a = null, b = null;
+      if (r === 1) { a = seeds[order[2 * p - 2] - 1] ?? null; b = seeds[order[2 * p - 1] - 1] ?? null; }
+      const bye = r === 1 && b === null;     // sem adversário: folga, avança direto
+      const next = r < R ? idOf[`${r + 1}:${Math.ceil(p / 2)}`] : null;
+      const slot = r < R ? (p % 2 ? 1 : 2) : null;
+      const { rows } = await client.query(
+        `INSERT INTO matches (game, round, position, ${c1}, ${c2}, side1_name, side2_name, status, winner, bye, next_match_id, next_slot)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`,
+        [game.slug, r, p, a, b, a ? names.get(a) : null, b ? names.get(b) : null, bye ? 'done' : 'pending', bye ? 1 : null, bye, next, slot]);
+      idOf[`${r}:${p}`] = rows[0].id;
+      if (bye && next) { // quem tem folga já entra na próxima rodada
+        await client.query(`UPDATE matches SET ${slot === 1 ? c1 : c2} = $1, ${slot === 1 ? 'side1_name' : 'side2_name'} = $2 WHERE id = $3`, [a, names.get(a), next]);
+      }
+    }
   }
-  const pairs = [];
-  for (let i = 0; i < s.length; i += 2) pairs.push([s[i], s[i + 1]]);
-  if (bye !== null) pairs.push([bye, null]);
-  return pairs;
 }
 
-async function entityIds(client, game) {
-  const q = game.type === 'team' ? ['SELECT id FROM teams ORDER BY id', []] : ['SELECT id FROM players WHERE game = $1 ORDER BY id', [game.slug]];
-  return (await client.query(...q)).rows.map((r) => r.id);
-}
-
-async function winnersOf(client, game, round) {
-  const [c1, c2] = cols(game);
-  const { rows } = await client.query(`SELECT ${c1} AS a, ${c2} AS b, winner FROM matches WHERE game = $1 AND round = $2 AND archived_at IS NULL ORDER BY position`, [game.slug, round]);
-  return rows.map((r) => (r.winner === 1 ? r.a : r.b));
-}
-
-// redo=false: sorteia a 1ª rodada ou a próxima (com os vencedores). redo=true: refaz a rodada atual.
-async function drawRound(game, redo = false) {
-  const [c1, c2] = cols(game);
+// redo=false: sorteia o chaveamento. redo=true: refaz o sorteio (só se nenhuma partida foi concluída).
+async function drawBracket(game, redo = false) {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
     await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [game.slug]);
-    const { rows: ms } = await client.query(`SELECT round, status, winner, (${c2} IS NULL) AS bye FROM matches WHERE game = $1 AND archived_at IS NULL`, [game.slug]);
-    const last = ms.length ? Math.max(...ms.map((m) => m.round)) : 0;
-    const cur = ms.filter((m) => m.round === last);
-    let round, ids;
-
+    const { rows: ex } = await client.query('SELECT status, bye FROM matches WHERE game = $1 AND archived_at IS NULL', [game.slug]);
+    if (ex.length && !redo) throw httpErr(400, 'Já existe um chaveamento. Use "Refazer sorteio" ou "Reiniciar".');
     if (redo) {
-      if (!last) throw httpErr(400, 'Não há sorteio para refazer.');
-      if (cur.some((m) => m.status === 'done' && !m.bye)) throw httpErr(400, 'Há confrontos concluídos nesta rodada. Reabra-os antes de refazer o sorteio.');
-      await client.query('DELETE FROM matches WHERE game = $1 AND round = $2 AND archived_at IS NULL', [game.slug, last]);
-      round = last;
-      ids = last === 1 ? await entityIds(client, game) : await winnersOf(client, game, last - 1);
-    } else if (!last) {
-      round = 1; ids = await entityIds(client, game);
-    } else {
-      if (!cur.every((m) => m.status === 'done' && m.winner)) throw httpErr(400, 'Conclua todos os confrontos da rodada atual antes de sortear a próxima.');
-      ids = await winnersOf(client, game, last);
-      if (ids.length < 2) throw httpErr(400, 'A competição já tem um campeão.');
-      round = last + 1;
+      if (!ex.length) throw httpErr(400, 'Não há sorteio para refazer.');
+      if (ex.some((m) => m.status === 'done' && !m.bye)) throw httpErr(400, 'Já existem partidas concluídas. Use "Reiniciar" para começar um novo chaveamento.');
+      await client.query('DELETE FROM matches WHERE game = $1 AND archived_at IS NULL', [game.slug]);
     }
-    if (ids.length < 2) throw httpErr(400, `É preciso ter pelo menos 2 ${game.type === 'team' ? 'equipes' : 'jogadores'} inscritos.`);
-
-    const { rows: byes } = await client.query(`SELECT ${c1} AS id FROM matches WHERE game = $1 AND ${c2} IS NULL AND archived_at IS NULL`, [game.slug]);
-    const pairs = makePairs(ids, new Set(byes.map((b) => b.id)));
-    // grava os nomes junto com a partida (o histórico não depende do cadastro continuar existindo)
-    const { rows: nm } = await client.query(
-      game.type === 'team' ? 'SELECT id, name FROM teams' : 'SELECT id, name FROM players WHERE game = $1',
-      game.type === 'team' ? [] : [game.slug]);
-    const names = new Map(nm.map((r) => [r.id, r.name]));
-    for (let i = 0; i < pairs.length; i++) {
-      const [a, b] = pairs[i];
-      await client.query(
-        `INSERT INTO matches (game, round, position, ${c1}, ${c2}, status, winner, side1_name, side2_name)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-        [game.slug, round, i + 1, a, b, b === null ? 'done' : 'pending', b === null ? 1 : null, names.get(a), b === null ? null : names.get(b)]);
-    }
+    const list = await entities(client, game);
+    if (list.length < 2) throw httpErr(400, `É preciso ter pelo menos 2 ${game.type === 'team' ? 'equipes' : 'jogadores'} inscritos.`);
+    await createBracket(client, game, list);
     await client.query('COMMIT');
   } catch (e) { await client.query('ROLLBACK'); throw e; } finally { client.release(); }
 }
@@ -142,27 +149,46 @@ async function resetBracket(game) {
   } catch (e) { await client.query('ROLLBACK'); throw e; } finally { client.release(); }
 }
 
-// ---------- resultado de um confronto (só na rodada atual) ----------
-async function loadEditableMatch(id) {
-  const { rows } = await pool.query('SELECT game, round, status, archived_at, (player2_id IS NULL AND team2_id IS NULL) AS bye FROM matches WHERE id = $1', [id]);
+// ---------- resultado de um jogo ----------
+// winner: 1 ou 2 (registra o vencedor e o faz avançar) | null (reabre o jogo)
+async function setWinner(id, winner) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query('SELECT * FROM matches WHERE id = $1 FOR UPDATE', [id]);
+    const m = rows[0];
+    if (!m) throw httpErr(404, 'Confronto não encontrado.');
+    if (m.archived_at) throw httpErr(400, 'Esta partida está arquivada no histórico.');
+    if (m.bye) throw httpErr(400, 'Uma folga avança automaticamente e não pode ser alterada.');
+
+    const [c1, c2] = cols(GAMES[m.game]);
+    const next = m.next_match_id ? (await client.query('SELECT id, status FROM matches WHERE id = $1 FOR UPDATE', [m.next_match_id])).rows[0] : null;
+    const nCol = m.next_slot === 1 ? c1 : c2, nName = m.next_slot === 1 ? 'side1_name' : 'side2_name';
+
+    if (winner) {
+      if (!m[c1] || !m[c2]) throw httpErr(400, 'Este confronto ainda não tem os dois participantes. Conclua os jogos anteriores.');
+      if (m.status === 'done') throw httpErr(400, 'Este confronto já tem vencedor. Reabra-o antes de alterar.');
+      await client.query("UPDATE matches SET status = 'done', winner = $1, finished_at = now() WHERE id = $2", [winner, id]);
+      if (next) await client.query(`UPDATE matches SET ${nCol} = $1, ${nName} = $2 WHERE id = $3`,
+        [winner === 1 ? m[c1] : m[c2], winner === 1 ? m.side1_name : m.side2_name, next.id]);
+    } else if (m.status === 'done') {
+      if (next && next.status === 'done') throw httpErr(400, 'Reabra antes o jogo seguinte, que já tem vencedor.');
+      await client.query("UPDATE matches SET status = 'pending', winner = NULL, finished_at = NULL WHERE id = $1", [id]);
+      if (next) await client.query(`UPDATE matches SET ${nCol} = NULL, ${nName} = NULL WHERE id = $1`, [next.id]);
+    }
+    await client.query('COMMIT');
+  } catch (e) { await client.query('ROLLBACK'); throw e; } finally { client.release(); }
+}
+
+// define (ou limpa) o horário de um jogo (pode ser definido antes de os participantes serem conhecidos)
+async function setSchedule(id, value) {
+  const { rows } = await pool.query('SELECT bye, archived_at FROM matches WHERE id = $1', [id]);
   if (!rows[0]) throw httpErr(404, 'Confronto não encontrado.');
   if (rows[0].archived_at) throw httpErr(400, 'Esta partida está arquivada no histórico.');
-  const { rows: mx } = await pool.query('SELECT MAX(round) AS r FROM matches WHERE game = $1 AND archived_at IS NULL', [rows[0].game]);
-  if (rows[0].round < mx[0].r) throw httpErr(400, 'Só é possível alterar confrontos da rodada atual.');
-  return rows[0];
+  if (rows[0].bye) throw httpErr(400, 'Uma folga não tem horário.');
+  let when = null;
+  if (value) { when = new Date(value); if (Number.isNaN(when.getTime())) throw httpErr(400, 'Data inválida.'); }
+  await pool.query('UPDATE matches SET scheduled_at = $1 WHERE id = $2', [when, id]);
 }
 
-async function setWinner(id, winner) { // winner: 1, 2 ou null (reabrir)
-  const m = await loadEditableMatch(id);
-  if (m.bye) throw httpErr(400, 'Uma folga avança automaticamente e não pode ser alterada.');
-  await pool.query('UPDATE matches SET status = $1, winner = $2, finished_at = $3 WHERE id = $4',
-    [winner ? 'done' : 'pending', winner, winner ? new Date() : null, id]);
-}
-
-async function deleteMatch(id) {
-  const m = await loadEditableMatch(id);
-  if (m.status === 'done' && !m.bye) throw httpErr(400, 'Partidas realizadas ficam no histórico e não podem ser excluídas. Reabra o confronto antes, se necessário.');
-  await pool.query('DELETE FROM matches WHERE id = $1', [id]);
-}
-
-module.exports = { getBracket, drawRound, resetBracket, setWinner, deleteMatch };
+module.exports = { getBracket, drawBracket, resetBracket, setWinner, setSchedule };

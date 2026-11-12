@@ -1,13 +1,47 @@
+<%
+  const dmy = (d) => new Date(d).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit' });
+  const hm  = (d) => new Date(d).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
+  const cls = (m, side) => (m.winner === side ? 'win' : (m.winner ? 'lose' : ''));
+  const R = bracket.total;
+  const K = bracket.exists ? bracket.rounds[0].matches.length : 0;
+%>
 <% if (bracket.champion) { %>
   <div class="champion">
     <span class="trophy">🏆</span>
     <div><small>Campeão</small><b><%= bracket.champion.name %></b><span><%= bracket.champion.sub %></span></div>
   </div>
 <% } %>
-<% if (!bracket.rounds.length) { %>
+
+<% if (!bracket.exists) { %>
   <p class="empty">O sorteio dos confrontos ainda não foi realizado.</p>
+<% } else { %>
+  <div class="tree" style="--k:<%= K %>">
+    <% bracket.rounds.forEach((r) => { %>
+      <div class="rcol">
+        <h4><%= r.short %></h4>
+        <div class="rslots">
+          <% r.matches.forEach((m) => { %>
+            <div class="slot <%= r.round === R ? 'last' : (m.position % 2 ? 'odd' : 'even') %> <%= r.round > 1 ? 'has-in' : '' %>">
+              <div class="bm <%= m.status === 'done' ? 'done' : '' %> <%= m.bye ? 'bye' : '' %>">
+                <% if (m.number) { %><span class="bnum"><%= m.number %></span><% } %>
+                <div class="brow <%= cls(m, 1) %> <%= m.p1 ? '' : 'tbd' %>"><%= m.p1 ? m.p1.name : (m.src1 || 'A definir') %></div>
+                <div class="brow <%= cls(m, 2) %> <%= m.p2 ? '' : 'tbd' %>"><%= m.p2 ? m.p2.name : (m.bye ? 'BYE' : (m.src2 || 'A definir')) %></div>
+                <% if (m.scheduledAt && !m.bye) { %><div class="bwhen"><%= dmy(m.scheduledAt) %> · <%= hm(m.scheduledAt) %></div><% } %>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    <% }) %>
+    <div class="rcol champ">
+      <h4>Campeão</h4>
+      <div class="rslots">
+        <div class="slot has-in">
+          <div class="bm champ-card">
+            <div class="brow <%= bracket.champion ? 'win' : 'tbd' %>"><%= bracket.champion ? '🏆 ' + bracket.champion.name : 'A definir' %></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 <% } %>
-<% [...bracket.rounds].reverse().forEach(r => { %>
-  <h3 class="round-title"><%= r.label %></h3>
-  <%- include('matches', { matches: r.matches }) %>
-<% }) %>
